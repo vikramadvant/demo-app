@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { UserContext } from "@/context/user-context";
+import { UserContext } from "@/context/UserContext";
 
 export default function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState(null);

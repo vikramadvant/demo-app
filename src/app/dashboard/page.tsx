@@ -1,10 +1,10 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { useUser } from "@/context/user-context";
+import { useUser } from "@/context/UserContext";
 import { useState, useEffect } from "react";
-import { TaskDialog } from "@/components/task-dialog";
-import { TaskCard } from "@/components/task-card";
+import { TaskDialog } from "@/components/TaskDialog";
+import { TaskCard } from "@/components/TaskCard";
 
 interface Task {
   id: string;
