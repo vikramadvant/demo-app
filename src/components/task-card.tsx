@@ -29,9 +29,9 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
               {task.description}
             </p>
           )}
-          <p className="text-sm text-gray-500 mt-2">
+          {/* <p className="text-sm text-gray-500 mt-2">
             Project: {task.project.name}
-          </p>
+          </p> */}
         </div>
         <div className="flex flex-col items-end gap-2">
           {task.dueDate && (

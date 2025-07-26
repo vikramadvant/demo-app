@@ -1,7 +1,8 @@
 "use client";
 
 import { UserButton } from "@clerk/nextjs";
-import { useState } from "react";
+import { useUser } from "@/context/user-context";
+import { useState, useEffect } from "react";
 import { TaskDialog } from "@/components/task-dialog";
 import { TaskCard } from "@/components/task-card";
 
@@ -18,74 +19,59 @@ interface Task {
 }
 
 export default function DashboardPage() {
+  const user = useUser();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  // This would normally come from an API call
-  const tasks: Task[] = [
-    {
-      id: "1",
-      name: "Example Task",
-      description: "This is an example task",
-      status: "TODO",
-      projectId: "1",
-      project: {
-        name: "Example Project",
-      },
-      dueDate: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      name: "Example Task",
-      description: "This is an example task",
-      status: "IN_PROGRESS",
-      projectId: "1",
-      project: {
-        name: "Example Project",
-      },
-      dueDate: new Date().toISOString(),
-    },
-    {
-      id: "3",
-      name: "Example Task",
-      description: "This is an example task",
-      status: "IN_PROGRESS",
-      projectId: "1",
-      project: {
-        name: "Example Project",
-      },
-      dueDate: new Date().toISOString(),
-    },
-    {
-      id: "4",
-      name: "Example Task",
-      description: "This is an example task",
-      status: "DONE",
-      projectId: "1",
-      project: {
-        name: "Example Project",
-      },
-      dueDate: new Date().toISOString(),
-    },
-    {
-      id: "5",
-      name: "Example Task",
-      description: "This is an example task",
-      status: "IN_PROGRESS",
-      projectId: "1",
-      project: {
-        name: "Example Project",
-      },
-      dueDate: new Date().toISOString(),
-    },
-  ];
+  useEffect(() => {
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchTasks();
+    }
+  }, [user]);
+
+  async function fetchTasks() {
+    try {
+      const res = await fetch("/api/tasks");
+      const data = await res.json();
+      setTasks(data);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+    }
+  }
+
+  function handleDialogClose() {
+    setIsCreateDialogOpen(false);
+    setSelectedTask(null);
+    fetchTasks(); // refresh after create or update
+  }
+
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-semibold text-primary">Dashboard</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-semibold text-primary">Dashboard</h1>
+              <span className="text-sm text-gray-500">
+                Welcome, {user?.firstName || "User"}!
+              </span>
+            </div>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -129,13 +115,13 @@ export default function DashboardPage() {
 
       <TaskDialog
         isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
+        onClose={handleDialogClose}      
       />
 
       {selectedTask && (
         <TaskDialog
           isOpen={true}
-          onClose={() => setSelectedTask(null)}
+          onClose={handleDialogClose}
           task={selectedTask}
         />
       )}

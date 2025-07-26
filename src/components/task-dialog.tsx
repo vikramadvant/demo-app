@@ -32,7 +32,6 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       name: task?.name || "",
       description: task?.description || "",
       status: (task?.status as "TODO" | "IN_PROGRESS" | "DONE") || "TODO",
-      projectId: task?.projectId || "",
       dueDate: task?.dueDate ? format(new Date(task.dueDate), "yyyy-MM-dd") : undefined,
     },
   });

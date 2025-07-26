@@ -20,7 +20,7 @@ export default async function Home() {
               Streamline your workflow with our powerful task management solution.
               Create, organize, and track tasks effortlessly.
             </p>
-            
+
             <div className="w-full max-w-5xl mx-auto space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                 <FeatureCard
