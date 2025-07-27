@@ -5,24 +5,22 @@ import { useUser } from "@/context/UserContext";
 import { useState, useEffect } from "react";
 import { TaskDialog } from "@/components/TaskDialog";
 import { TaskCard } from "@/components/TaskCard";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { TaskApi } from "@/services/apis/taskApi";
+import { Task, TaskColumnProps } from "@/types";
 
-interface Task {
-  id: string;
-  name: string;
-  description?: string;
-  status: string;
-  projectId: string;
-  dueDate?: string;
-  project: {
-    name: string;
-  };
-}
+const taskApi = new TaskApi();
 
 export default function DashboardPage() {
   const user = useUser();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; taskId: number | null }>({
+    isOpen: false,
+    taskId: null
+  });
 
   useEffect(() => {
   }, [user]);
@@ -35,11 +33,30 @@ export default function DashboardPage() {
 
   async function fetchTasks() {
     try {
-      const res = await fetch("/api/tasks");
-      const data = await res.json();
+      const data = await taskApi.getTasks();
       setTasks(data);
     } catch (err) {
       console.error("Failed to fetch tasks:", err);
+    }
+  }
+
+  function handleDeleteTask(taskId: number) {
+    setDeleteConfirm({ isOpen: true, taskId });
+  }
+
+  async function confirmDelete() {
+    if (!deleteConfirm.taskId) return;
+    
+    try {
+      setIsDeleting(deleteConfirm.taskId);
+      await taskApi.deleteTask(deleteConfirm.taskId);
+      await fetchTasks(); // Refresh the task list
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+      alert("Failed to delete task. Please try again.");
+    } finally {
+      setIsDeleting(null);
+      setDeleteConfirm({ isOpen: false, taskId: null });
     }
   }
 
@@ -48,7 +65,6 @@ export default function DashboardPage() {
     setSelectedTask(null);
     fetchTasks(); // refresh after create or update
   }
-
 
   if (!user) {
     return (
@@ -97,18 +113,24 @@ export default function DashboardPage() {
             status="TODO"
             tasks={tasks.filter((task) => task.status === "TODO")}
             onTaskClick={(task) => setSelectedTask(task)}
+            onTaskDelete={handleDeleteTask}
+            deletingTaskId={isDeleting}
           />
           <TaskColumn
             title="In Progress"
             status="IN_PROGRESS"
             tasks={tasks.filter((task) => task.status === "IN_PROGRESS")}
             onTaskClick={(task) => setSelectedTask(task)}
+            onTaskDelete={handleDeleteTask}
+            deletingTaskId={isDeleting}
           />
           <TaskColumn
             title="Done"
             status="DONE"
             tasks={tasks.filter((task) => task.status === "DONE")}
             onTaskClick={(task) => setSelectedTask(task)}
+            onTaskDelete={handleDeleteTask}
+            deletingTaskId={isDeleting}
           />
         </div>
       </main>
@@ -125,18 +147,22 @@ export default function DashboardPage() {
           task={selectedTask}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, taskId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }
 
-interface TaskColumnProps {
-  title: string;
-  status: string;
-  tasks: Task[];
-  onTaskClick: (task: Task) => void;
-}
-
-function TaskColumn({ title, status, tasks, onTaskClick }: TaskColumnProps) {
+function TaskColumn({ title, status, tasks, onTaskClick, onTaskDelete, deletingTaskId }: TaskColumnProps) {
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <h3 className="font-semibold text-lg mb-4">{title}</h3>
@@ -146,6 +172,8 @@ function TaskColumn({ title, status, tasks, onTaskClick }: TaskColumnProps) {
             key={task.id}
             task={task}
             onClick={() => onTaskClick(task)}
+            onDelete={onTaskDelete}
+            isDeleting={deletingTaskId === task.id}
           />
         ))}
       </div>

@@ -1,67 +1,38 @@
 // src/app/api/tasks/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getOrCreateUser } from "@/lib/auth";
-import { headers } from "next/headers";
+import { TaskService } from "@/services/internal/taskService";
+
+const taskService = new TaskService();
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const user = await getOrCreateUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const task = await prisma.task.create({
-      data: {
-        name: body.name,
-        description: body.description,
-        status: body.status,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-        user: {
-          connect: { id: user.id },
-        },
-        project: {
-          connect: { id: 1 },
-        }
-      },
-    });
-
+    const task = await taskService.createTask(body);
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error("Error creating task:", error);
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
   }
 }
 
 export async function GET() {
-  const user = await getOrCreateUser();
-
-  if (!user || !user.id) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
   try {
-    const tasks = await prisma.task.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
+    const tasks = await taskService.getUserTasks();
     return NextResponse.json(tasks);
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    return new NextResponse("Failed to fetch tasks", { status: 500 });
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
   }
 }
 
 export async function PATCH(req: NextRequest) {
   try {
-    // Get the `id` from headers (assuming it's sent as 'x-task-id' or similar)
     const taskIdHeader = req.headers.get("id");
 
     if (!taskIdHeader) {
@@ -70,28 +41,14 @@ export async function PATCH(req: NextRequest) {
 
     const taskId = parseInt(taskIdHeader, 10);
     const body = await req.json();
-    const user = await getOrCreateUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const task = await prisma.task.update({
-      where: {
-        id: taskId,
-        userId: user.id,
-      },
-      data: {
-        name: body.name,
-        description: body.description,
-        status: body.status,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-      },
-    });
+    const task = await taskService.updateTask(taskId, body);
 
     return NextResponse.json(task);
   } catch (error) {
     console.error("PATCH error:", error);
+    if (error instanceof Error && error.message === "Unauthorized") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Task update failed" }, { status: 500 });
   }
 }

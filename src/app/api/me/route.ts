@@ -1,8 +1,15 @@
 // src/app/api/me/route.ts
-import { getOrCreateUser } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { AuthService } from "@/services/internal/authService";
+
+const authService = new AuthService();
 
 export async function GET() {
-  const user = await getOrCreateUser();
-  return NextResponse.json(user);
+  try {
+    const user = await authService.getCurrentUser();
+    return NextResponse.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+  }
 }
