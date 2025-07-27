@@ -39,13 +39,16 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   async function onSubmit(data: TaskFormValues) {
     try {
       setIsLoading(true);
-      const url = task ? `/api/tasks/${task.id}` : "/api/tasks";
+      const url = task ? `/api/tasks` : "/api/tasks";
       const method = task ? "PATCH" : "POST";
+
+      console.log("URL", url);
 
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
+          "id": task?.id || "",
         },
         body: JSON.stringify(data),
       });

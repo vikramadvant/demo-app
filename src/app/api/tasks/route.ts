@@ -2,36 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOrCreateUser } from "@/lib/auth";
-
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const taskId = parseInt(params.id);
-    const body = await req.json();
-    const user = await getOrCreateUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const task = await prisma.task.update({
-      where: {
-        id: taskId,
-        userId: user.id,
-      },
-      data: {
-        name: body.name,
-        description: body.description,
-        status: body.status,
-        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-      },
-    });
-
-    return NextResponse.json(task);
-  } catch (error) {
-    console.error("PATCH error:", error);
-    return NextResponse.json({ error: "Task update failed" }, { status: 500 });
-  }
-}
+import { headers } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -85,5 +56,42 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return new NextResponse("Failed to fetch tasks", { status: 500 });
+  }
+}
+
+export async function PATCH(req: NextRequest) {
+  try {
+    // Get the `id` from headers (assuming it's sent as 'x-task-id' or similar)
+    const taskIdHeader = req.headers.get("id");
+
+    if (!taskIdHeader) {
+      return NextResponse.json({ error: "Task ID not provided" }, { status: 400 });
+    }
+
+    const taskId = parseInt(taskIdHeader, 10);
+    const body = await req.json();
+    const user = await getOrCreateUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const task = await prisma.task.update({
+      where: {
+        id: taskId,
+        userId: user.id,
+      },
+      data: {
+        name: body.name,
+        description: body.description,
+        status: body.status,
+        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
+      },
+    });
+
+    return NextResponse.json(task);
+  } catch (error) {
+    console.error("PATCH error:", error);
+    return NextResponse.json({ error: "Task update failed" }, { status: 500 });
   }
 }
