@@ -2,43 +2,25 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { useUser } from "@/context/UserContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TaskDialog } from "@/components/TaskDialog";
 import { TaskCard } from "@/components/TaskCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { TaskApi } from "@/services/apis/taskApi";
 import { Task, TaskColumnProps } from "@/types";
-
-const taskApi = new TaskApi();
+import { useTasks, useDeleteTask } from "@/hooks/tasks";
 
 export default function DashboardPage() {
   const user = useUser();
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; taskId: number | null }>({
     isOpen: false,
     taskId: null
   });
 
-  useEffect(() => {
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchTasks();
-    }
-  }, [user]);
-
-  async function fetchTasks() {
-    try {
-      const data = await taskApi.getTasks();
-      setTasks(data);
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-    }
-  }
+  // React Query hooks
+  const { data: tasks = [], isLoading: tasksLoading, error: tasksError } = useTasks();
+  const { deleteTask, isLoading: isDeleting } = useDeleteTask();
 
   function handleDeleteTask(taskId: number) {
     setDeleteConfirm({ isOpen: true, taskId });
@@ -48,22 +30,17 @@ export default function DashboardPage() {
     if (!deleteConfirm.taskId) return;
     
     try {
-      setIsDeleting(deleteConfirm.taskId);
-      await taskApi.deleteTask(deleteConfirm.taskId);
-      await fetchTasks(); // Refresh the task list
+      await deleteTask(deleteConfirm.taskId);
+      setDeleteConfirm({ isOpen: false, taskId: null });
     } catch (error) {
       console.error("Failed to delete task:", error);
       alert("Failed to delete task. Please try again.");
-    } finally {
-      setIsDeleting(null);
-      setDeleteConfirm({ isOpen: false, taskId: null });
     }
   }
 
   function handleDialogClose() {
     setIsCreateDialogOpen(false);
     setSelectedTask(null);
-    fetchTasks(); // refresh after create or update
   }
 
   if (!user) {
@@ -72,6 +49,27 @@ export default function DashboardPage() {
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="mt-4 text-gray-500">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (tasksLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (tasksError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">Error loading tasks. Please try again.</p>
         </div>
       </div>
     );
@@ -114,7 +112,7 @@ export default function DashboardPage() {
             tasks={tasks.filter((task) => task.status === "TODO")}
             onTaskClick={(task) => setSelectedTask(task)}
             onTaskDelete={handleDeleteTask}
-            deletingTaskId={isDeleting}
+            deletingTaskId={isDeleting ? deleteConfirm.taskId : null}
           />
           <TaskColumn
             title="In Progress"
@@ -122,7 +120,7 @@ export default function DashboardPage() {
             tasks={tasks.filter((task) => task.status === "IN_PROGRESS")}
             onTaskClick={(task) => setSelectedTask(task)}
             onTaskDelete={handleDeleteTask}
-            deletingTaskId={isDeleting}
+            deletingTaskId={isDeleting ? deleteConfirm.taskId : null}
           />
           <TaskColumn
             title="Done"
@@ -130,7 +128,7 @@ export default function DashboardPage() {
             tasks={tasks.filter((task) => task.status === "DONE")}
             onTaskClick={(task) => setSelectedTask(task)}
             onTaskDelete={handleDeleteTask}
-            deletingTaskId={isDeleting}
+            deletingTaskId={isDeleting ? deleteConfirm.taskId : null}
           />
         </div>
       </main>

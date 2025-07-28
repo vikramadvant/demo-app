@@ -6,20 +6,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { taskFormSchema } from "@/schemas/task";
 import { format } from "date-fns";
-import { TaskApi } from "@/services/apis/taskApi";
 import { TaskDialogProps } from "@/types";
 import { Trash2 } from "lucide-react";
 import { ConfirmDialog } from "./ConfirmDialog";
-
-const taskApi = new TaskApi();
+import { useCreateTask, useUpdateTask, useDeleteTask } from "@/hooks/tasks";
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
 
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // React Query hooks
+  const { createTask, isLoading: isCreating } = useCreateTask();
+  const { updateTask, isLoading: isUpdating } = useUpdateTask();
+  const { deleteTask, isLoading: isDeleting } = useDeleteTask();
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -33,12 +34,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
   async function onSubmit(data: TaskFormValues) {
     try {
-      setIsLoading(true);
-
       if (task) {
-        await taskApi.updateTask(task.id, data);
+        await updateTask({ taskId: task.id, updateData: data });
       } else {
-        await taskApi.createTask(data);
+        await createTask(data);
       }
 
       router.refresh();
@@ -46,8 +45,6 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       form.reset();
     } catch (error) {
       console.error("Error saving task:", error);
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -55,17 +52,16 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     if (!task) return;
     
     try {
-      setIsDeleting(true);
-      await taskApi.deleteTask(task.id);
+      await deleteTask(task.id);
       router.refresh();
       onClose();
     } catch (error) {
       console.error("Error deleting task:", error);
       alert("Failed to delete task. Please try again.");
-    } finally {
-      setIsDeleting(false);
     }
   }
+
+  const isLoading = isCreating || isUpdating || isDeleting;
 
   return (
     <>
@@ -158,14 +154,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   type="button"
                   onClick={onClose}
                   className="rounded-md px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700"
-                  disabled={isLoading || isDeleting}
+                  disabled={isLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                  disabled={isLoading || isDeleting}
+                  disabled={isLoading}
                 >
                   {isLoading ? "Saving..." : task ? "Update Task" : "Create Task"}
                 </button>
