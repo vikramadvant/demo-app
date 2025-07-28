@@ -1,23 +1,41 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useForm } from "react-hook-form";
-import { X } from "lucide-react";
+import { X, Loader2 } from "lucide-react";
+import { Project, CreateProjectRequest, UpdateProjectRequest } from "@/types/project";
+import { useEffect } from "react";
 
 interface ProjectDialogProps {
   open: boolean;
   onClose: () => void;
-  project: any;
+  project?: Project | null;
+  onSubmit: (data: CreateProjectRequest | UpdateProjectRequest) => void;
+  isLoading?: boolean;
 }
 
-export default function ProjectDialog({ open, onClose, project }: ProjectDialogProps) {
+export default function ProjectDialog({ open, onClose, project, onSubmit, isLoading }: ProjectDialogProps) {
   const isEdit = !!project;
-  const { register, handleSubmit, reset } = useForm({
-    defaultValues: project || { name: "", description: "", status: "Active" },
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: { name: "", description: "" },
   });
 
-  const onSubmit = (data: any) => {
-    alert(`${isEdit ? "Edit" : "Create"} project: ${JSON.stringify(data, null, 2)}`);
+  // Reset form values when project changes (for edit mode)
+  useEffect(() => {
+    if (project) {
+      reset({
+        name: project.name,
+        description: project.description || "",
+      });
+    } else {
+      reset({
+        name: "",
+        description: "",
+      });
+    }
+  }, [project, reset]);
+
+  const handleFormSubmit = (data: any) => {
+    onSubmit(data);
     reset();
-    onClose();
   };
 
   return (
@@ -33,14 +51,17 @@ export default function ProjectDialog({ open, onClose, project }: ProjectDialogP
               <X size={20} />
             </button>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Project Name</label>
+              <label className="block text-sm font-medium mb-1">Project Name *</label>
               <input
-                {...register("name", { required: true })}
+                {...register("name", { required: "Project name is required" })}
                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter project name"
               />
+              {errors.name && (
+                <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Description</label>
@@ -48,31 +69,24 @@ export default function ProjectDialog({ open, onClose, project }: ProjectDialogP
                 {...register("description")}
                 className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Enter project description"
+                rows={3}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Status</label>
-              <select
-                {...register("status")}
-                className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="Active">Active</option>
-                <option value="Planning">Planning</option>
-                <option value="Completed">Completed</option>
-              </select>
             </div>
             <div className="flex justify-end gap-2 pt-4">
               <button
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
+                disabled={isLoading}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90 shadow"
+                disabled={isLoading}
+                className="px-4 py-2 rounded bg-primary text-white hover:bg-primary/90 shadow disabled:opacity-50 flex items-center gap-2"
               >
+                {isLoading && <Loader2 size={16} className="animate-spin" />}
                 {isEdit ? "Update" : "Create"}
               </button>
             </div>

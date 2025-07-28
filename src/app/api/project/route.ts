@@ -1,54 +1,44 @@
-// src/app/api/tasks/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { TaskService } from "@/services/internal/taskService";
+import { ProjectService } from "@/services/internal/projectService";
 
-const taskService = new TaskService();
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const task = await taskService.createTask(body);
-    return NextResponse.json(task, { status: 201 });
-  } catch (error) {
-    console.error("Error creating task:", error);
-    if (error instanceof Error && error.message === "Unauthorized") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return NextResponse.json({ error: "Failed to create task" }, { status: 500 });
-  }
-}
+const projectService = new ProjectService();
 
 export async function GET() {
   try {
-    const tasks = await taskService.getUserTasks();
-    return NextResponse.json(tasks);
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    if (error instanceof Error && error.message === "Unauthorized") {
+    const projects = await projectService.getAllProjects();
+    return NextResponse.json(projects);
+  } catch (error: any) {
+    if (error.message === "Unauthorized" || error.message.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: "Failed to fetch tasks" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch projects" },
+      { status: 500 }
+    );
   }
 }
 
-export async function PATCH(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const taskIdHeader = req.headers.get("id");
+    const body = await request.json();
+    const { name, description } = body;
 
-    if (!taskIdHeader) {
-      return NextResponse.json({ error: "Task ID not provided" }, { status: 400 });
+    if (!name) {
+      return NextResponse.json(
+        { error: "Project name is required" },
+        { status: 400 }
+      );
     }
 
-    const taskId = parseInt(taskIdHeader, 10);
-    const body = await req.json();
-    const task = await taskService.updateTask(taskId, body);
-
-    return NextResponse.json(task);
-  } catch (error) {
-    console.error("PATCH error:", error);
-    if (error instanceof Error && error.message === "Unauthorized") {
+    const project = await projectService.createProject({ name, description });
+    return NextResponse.json(project, { status: 201 });
+  } catch (error: any) {
+    if (error.message === "Unauthorized" || error.message.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: "Task update failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500 }
+    );
   }
 }

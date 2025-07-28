@@ -1,48 +1,75 @@
-import { Project as PrismaUser } from "@prisma/client";
+import { Project as PrismaProject } from "@prisma/client";
 
-export interface Project extends PrismaUser {
-  tasks?: string[]; // e.g. ['Task1', 'Task2']
+export interface Project extends PrismaProject {
+  tasks?: Task[];
 }
 
-// Project creation data type
+export interface Task {
+  id: number;
+  name: string;
+  description?: string;
+  status: string;
+  dueDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number;
+  projectId: number;
+  user?: {
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  };
+}
+
 export interface CreateProjectRequest {
   name: string;
-  description?: string | null;
+  description?: string;
 }
 
-// Project update data type
 export interface UpdateProjectRequest {
   name?: string;
-  description?: string | null;
+  description?: string;
 }
 
+export interface ProjectWithTasks extends Project {
+  tasks: Task[];
+}
 
 // Component prop types
 export interface ProjectCardProps {
   project: Project;
-  onClick: () => void;
+  onEdit?: (project: Project) => void;
   onDelete?: (projectId: number) => void;
-  isDeleting?: boolean;
+  onAssign?: (project: Project) => void;
 }
 
 export interface ProjectDialogProps {
+  project?: Project;
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (data: CreateProjectRequest | UpdateProjectRequest) => void;
+  isLoading?: boolean;
+}
+
+export interface ProjectTableProps {
+  projects: Project[];
+  onEdit: (project: Project) => void;
+  onDelete: (projectId: number) => void;
+  onAssign: (project: Project) => void;
+  isLoading?: boolean;
+}
+
+export interface AssignProjectDialogProps {
   project?: Project;
-}
-
-export interface ProjectListProps {
-  projects: Project[];
-  onProjectClick: (project: Project) => void;
-  onProjectDelete?: (projectId: number) => void;
-  deletingProjectId?: number | null;
-}
-
-export interface ProjectColumnProps {
-  title: string;
-  projects: Project[];
-  onProjectClick: (project: Project) => void;
-  onProjectDelete?: (projectId: number) => void;
-  deletingProjectId?: number | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onAssign: (projectId: number, userId: number) => void;
+  users: Array<{
+    id: number;
+    firstName?: string;
+    lastName?: string;
+    email: string;
+  }>;
 }
 

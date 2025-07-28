@@ -1,6 +1,5 @@
 import { ProjectRepository } from "@/services/repositories/projectRepository";
-import { AuthService } from "@/services/internal/authService";
-import { CreateProjectRequest, UpdateProjectRequest, Project } from "@/types/project";
+import { AuthService } from "./authService";
 
 export class ProjectService {
   private projectRepository: ProjectRepository;
@@ -11,59 +10,113 @@ export class ProjectService {
     this.authService = new AuthService();
   }
 
-  async createProject(projectData: CreateProjectRequest): Promise<Project> {
-    const user = await this.authService.getCurrentUser();
-
-    if (!user) {
+  async createProject(data: { name: string; description?: string }) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
       throw new Error("Unauthorized");
     }
 
-    return await this.projectRepository.create({
-      name: projectData.name,
-      description: projectData.description ? projectData.description : undefined,
-    });
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    return await this.projectRepository.create(data);
   }
 
-  async getAllProjects(): Promise<Project[]> {
-    const user = await this.authService.getCurrentUser();
-
-    if (!user) {
+  async getAllProjects() {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
       throw new Error("Unauthorized");
     }
 
-    return await this.projectRepository.findAll(); // Since userId removed
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    return await this.projectRepository.findAll();
   }
 
-  async getProjectById(projectId: number): Promise<Project | null> {
-    const user = await this.authService.getCurrentUser();
-
-    if (!user) {
+  async getProjectById(id: number) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
       throw new Error("Unauthorized");
     }
 
-    return await this.projectRepository.findById(projectId);
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    const project = await this.projectRepository.findById(id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    return project;
   }
 
-  async updateProject(projectId: number, updateData: UpdateProjectRequest): Promise<Project> {
-    const user = await this.authService.getCurrentUser();
-
-    if (!user) {
+  async updateProject(id: number, data: { name?: string; description?: string }) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
       throw new Error("Unauthorized");
     }
 
-    return await this.projectRepository.update(projectId, {
-      name: updateData.name,
-      description: updateData.description ? updateData.description : undefined,
-    });
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    const project = await this.projectRepository.findById(id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    return await this.projectRepository.update(id, data);
   }
 
-  async deleteProject(projectId: number): Promise<Project> {
-    const user = await this.authService.getCurrentUser();
-
-    if (!user) {
+  async deleteProject(id: number) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
       throw new Error("Unauthorized");
     }
 
-    return await this.projectRepository.delete(projectId);
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    const project = await this.projectRepository.findById(id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    return await this.projectRepository.delete(id);
+  }
+
+  async getProjectWithTasks(id: number) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
+      throw new Error("Unauthorized");
+    }
+
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    const project = await this.projectRepository.findWithTasks(id);
+    if (!project) {
+      throw new Error("Project not found");
+    }
+
+    return project;
   }
 }

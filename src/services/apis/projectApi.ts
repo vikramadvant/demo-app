@@ -1,31 +1,52 @@
-import { Task } from "@/types";
-import { CreateTaskRequest, UpdateTaskRequest } from "@/types/task";
 import { httpClient } from "./httpClient";
 
-export class ProjectApi {
-  private baseUrl: string = "/project";
+export interface CreateProjectRequest {
+  name: string;
+  description?: string;
+}
 
-  async createProject(data: CreateTaskRequest): Promise<Task> {
-    const response = await httpClient.post<Task>(`${this.baseUrl}/create`, data);
+export interface UpdateProjectRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export class ProjectApi {
+  private baseUrl = "/project";
+
+  async createProject(data: CreateProjectRequest): Promise<Project> {
+    const response = await httpClient.post(this.baseUrl, data);
     return response.data;
   }
 
-  async updateProject(id: number, data: UpdateTaskRequest): Promise<Task> {
-    const response = await httpClient.put<Task>(`${this.baseUrl}/update/${id}`, data);
+  async getAllProjects(): Promise<Project[]> {
+    const response = await httpClient.get(this.baseUrl);
     return response.data;
-  } 
+  }
+
+  async getProjectById(id: number): Promise<Project> {
+    const response = await httpClient.get(`${this.baseUrl}/${id}`);
+    return response.data;
+  }
+
+  async updateProject(id: number, data: UpdateProjectRequest): Promise<Project> {
+    const response = await httpClient.patch(`${this.baseUrl}/${id}`, data);
+    return response.data;
+  }
 
   async deleteProject(id: number): Promise<void> {
-    await httpClient.delete(`${this.baseUrl}/delete/${id}`);
+    await httpClient.delete(`${this.baseUrl}/${id}`);
   }
 
-  async getProjectById(id: number): Promise<Task> {
-    const response = await httpClient.get<Task>(`${this.baseUrl}/${id}`);
-    return response.data;
-  }
-
-  async getAllProjects(): Promise<Task[]> {
-    const response = await httpClient.get<Task[]>(`${this.baseUrl}/all`);
+  async getProjectWithTasks(id: number): Promise<Project & { tasks: any[] }> {
+    const response = await httpClient.get(`${this.baseUrl}/${id}/tasks`);
     return response.data;
   }
 } 
