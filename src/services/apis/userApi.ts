@@ -1,27 +1,18 @@
 import { User } from "@/types";
+import { httpClient } from "./httpClient";
 
 export class UserApi {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = "/api/me";
-  }
+  private baseUrl: string = "/me";
 
   async getCurrentUser(): Promise<User | null> {
-    const response = await fetch(this.baseUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
+    try {
+      const response = await httpClient.get<User>(this.baseUrl);
+      return response.data;
+    } catch (error: any) {
+      if (error.status === 401) {
         return null;
       }
-      throw new Error("Failed to fetch user");
+      throw error;
     }
-
-    return response.json();
   }
 } 
