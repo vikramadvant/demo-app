@@ -4,6 +4,7 @@ import { AuthService } from "@/services/internal/authService";
 
 const authService = new AuthService();
 
+// Returns user with roles: string[]
 export async function GET() {
   try {
     const user = await authService.getCurrentUser();

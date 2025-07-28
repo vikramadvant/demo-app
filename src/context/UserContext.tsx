@@ -2,8 +2,10 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { User } from "@prisma/client";
+import { User } from "@/types/user";
 
 export const UserContext = createContext<User | null>(null);
 
-export const useUser = () => useContext(UserContext);
+export function useUser() {
+  return useContext(UserContext);
+}

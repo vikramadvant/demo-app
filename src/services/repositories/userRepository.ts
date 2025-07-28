@@ -21,4 +21,22 @@ export class UserRepository {
 
     return user;
   }
+
+  // Fetch user with roles as string array
+  async findUserWithRolesByEmail(email: string) {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+    if (!user) return null;
+    // Map roles to string array
+    const roles = user.roles.map((ur) => ur.role.role);
+    return { ...user, roles };
+  }
 } 

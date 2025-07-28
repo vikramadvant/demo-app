@@ -26,7 +26,12 @@ export class AuthService {
     });
   }
 
-  async getCurrentUser(): Promise<User | null> {
-    return await this.getOrCreateUser();
+  async getCurrentUser(): Promise<any> {
+    const clerkUser = await currentUser();
+    if (!clerkUser || !clerkUser.emailAddresses?.[0]?.emailAddress) {
+      return null;
+    }
+    const email = clerkUser.emailAddresses[0].emailAddress;
+    return await this.userRepository.findUserWithRolesByEmail(email);
   }
 } 
