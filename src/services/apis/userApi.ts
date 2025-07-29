@@ -8,8 +8,8 @@ export class UsersApi {
     try {
       const response = await httpClient.get<User[]>(`${this.baseUrl}`);
       return response.data;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to fetch users");
     }
   }
 }

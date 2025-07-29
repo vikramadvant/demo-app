@@ -3,33 +3,56 @@ import { CreateTaskRequest, UpdateTaskRequest } from "@/types/task";
 import { httpClient } from "./httpClient";
 
 export class TaskApi {
-  private baseUrl: string = "/tasks";
+  private baseUrl = "/tasks";
 
-  async createTask(taskData: CreateTaskRequest): Promise<Task> {
-    const response = await httpClient.post<Task>(this.baseUrl, taskData);
-    return response.data;
+  async createTask(data: any) {
+    try {
+      const response = await httpClient.post(this.baseUrl, data);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to create task");
+    }
   }
 
-  async getTasks(): Promise<Task[]> {
-    const response = await httpClient.get<Task[]>(this.baseUrl);
-    return response.data;
+  async getTasks() {
+    try {
+      const response = await httpClient.get(this.baseUrl);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to fetch tasks");
+    }
   }
 
-  async updateTask(taskId: number, updateData: UpdateTaskRequest): Promise<Task> {
-    const response = await httpClient.patch<Task>(this.baseUrl, updateData, {
+  async getTask(taskId: number) {
+    try {
+      const response = await httpClient.get(`${this.baseUrl}/${taskId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to fetch task");
+    }
+  }
+
+async updateTask(taskId: number, data: any) {
+  try {
+    const response = await httpClient.patch(this.baseUrl, data, {
       headers: {
-        "id": taskId.toString(),
+        'id': taskId,
       },
     });
     return response.data;
+  } catch (error: any) {
+    console.log('error: ', error);
+    throw new Error(error?.message || "Failed to update task");
   }
+}
 
-  async deleteTask(taskId: number): Promise<void> {
-    await httpClient.delete(`${this.baseUrl}/${taskId}`);
-  }
 
-  async getTaskById(taskId: number): Promise<Task> {
-    const response = await httpClient.get<Task>(`${this.baseUrl}/${taskId}`);
-    return response.data;
+  async deleteTask(taskId: number) {
+    try {
+      const response = await httpClient.delete(`${this.baseUrl}/${taskId}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to delete task");
+    }
   }
 } 

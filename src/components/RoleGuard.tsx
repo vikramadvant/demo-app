@@ -10,21 +10,13 @@ export function RoleGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (user && isAdmin(user) && !pathname.startsWith("/admin")) {
-      router.replace("/admin");
+    if (user && !isAdmin(user)) {
+      router.replace("/dashboard");
     }
-    if (user && !isAdmin(user) && pathname.startsWith("/admin")) {
+    if (user && isAdmin(user)) {
       router.replace("/admin");
     }
   }, [user, pathname, router]);
-
-  // Optionally, show nothing or a loading spinner while redirecting
-  if (user && isAdmin(user) && !pathname.startsWith("/admin")) {
-    return null;
-  }
-  if (user && !isAdmin(user) && pathname.startsWith("/admin")) {
-    return null;
-  }
 
   return <>{children}</>;
 } 

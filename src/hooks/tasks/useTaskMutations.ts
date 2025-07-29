@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { TaskApi } from '@/services/apis/taskApi';
 import { CreateTaskRequest, UpdateTaskRequest } from '@/types/task';
 import { taskKeys } from './useTasks';
+import { toast } from 'react-hot-toast';
 
 const taskApi = new TaskApi();
 
@@ -14,9 +15,11 @@ export const useCreateTask = () => {
     onSuccess: () => {
       // Invalidate and refetch tasks list
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      toast.success("Task created successfully");
     },
     onError: (error: any) => {
       console.error('Error creating task:', error);
+      toast.error(error?.message || "Failed to create task");
     },
   });
 
@@ -40,9 +43,11 @@ export const useUpdateTask = () => {
       queryClient.setQueryData(taskKeys.detail(variables.taskId), updatedTask);
       // Invalidate and refetch tasks list
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      toast.success("Task updated successfully");
     },
     onError: (error: any) => {
       console.error('Error updating task:', error);
+      toast.error(error?.message || "Failed to update task");
     },
   });
 
@@ -65,9 +70,11 @@ export const useDeleteTask = () => {
       queryClient.removeQueries({ queryKey: taskKeys.detail(taskId) });
       // Invalidate and refetch tasks list
       queryClient.invalidateQueries({ queryKey: taskKeys.lists() });
+      toast.success("Task deleted successfully");
     },
     onError: (error: any) => {
       console.error('Error deleting task:', error);
+      toast.error(error?.message || "Failed to delete task");
     },
   });
 

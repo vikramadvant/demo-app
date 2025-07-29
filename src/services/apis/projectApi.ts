@@ -51,17 +51,29 @@ export class ProjectApi {
   }
 
   async assignUsersToProject(projectId: number, userIds: number[]): Promise<any> {
-    const response = await httpClient.post(`/project/${projectId}/users`, { userIds });
-    return response.data;
+    try {
+      const response = await httpClient.post(`/project/${projectId}/users`, { userIds });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to assign users");
+    }
   }
 
   async removeUserFromProject(projectId: number, userId: number): Promise<any> {
-    const response = await httpClient.delete(`/project/${projectId}/users`, { data: { userId } });
-    return response.data;
+    try {
+      const response = await httpClient.delete(`/project/${projectId}/users`, { data: { userId } });
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to remove user from project");
+    }
   }
 
   async getProjectAssignees(projectId: number): Promise<any[]> {
-    const response = await httpClient.get(`/project/${projectId}/users`);
-    return response.data;
+    try {
+      const response = await httpClient.get(`/project/${projectId}/users`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(error?.message || "Failed to fetch assignees");
+    }
   }
 } 

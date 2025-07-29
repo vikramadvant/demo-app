@@ -33,6 +33,7 @@ export class AuthService {
     findOrCreate = JSON.parse(JSON.stringify(findOrCreate)); 
 
     const user = await this.userRepository.findUserWithRolesByEmail(findOrCreate?.email);
+    console.log('user: in authservice', user);
 
     if (!user) {
       console.error("Failed to find user with roles in database");

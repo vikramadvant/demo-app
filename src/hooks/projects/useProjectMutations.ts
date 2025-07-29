@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProjectApi } from "@/services/apis/projectApi";
 import { projectKeys } from "./useProjects";
 import { CreateProjectRequest, UpdateProjectRequest } from "@/types/project";
+import { toast } from "react-hot-toast";
 
 const projectApi = new ProjectApi();
 
@@ -12,9 +13,11 @@ export function useCreateProject() {
     mutationFn: (data: CreateProjectRequest) => projectApi.createProject(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      toast.success("Project created successfully");
     },
     onError: (error: any) => {
       console.error("Error creating project:", error);
+      toast.error(error?.message || "Failed to create project");
     },
   });
 }
@@ -31,9 +34,11 @@ export function useUpdateProject() {
         projectKeys.detail(updatedProject.id),
         updatedProject
       );
+      toast.success("Project updated successfully");
     },
     onError: (error: any) => {
       console.error("Error updating project:", error);
+      toast.error(error?.message || "Failed to update project");
     },
   });
 }
@@ -46,9 +51,11 @@ export function useDeleteProject() {
     onSuccess: (_, projectId) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       queryClient.removeQueries({ queryKey: projectKeys.detail(projectId) });
+      toast.success("Project deleted successfully");
     },
     onError: (error: any) => {
       console.error("Error deleting project:", error);
+      toast.error(error?.message || "Failed to delete project");
     },
   });
 }
@@ -61,9 +68,11 @@ export function useAssignUsersToProject() {
     onSuccess: (_, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      toast.success("Users assigned to project successfully");
     },
     onError: (error: any) => {
       console.error("Error assigning users to project:", error);
+      toast.error(error?.message || "Failed to assign users to project");
     },
   });
 }
@@ -76,9 +85,11 @@ export function useRemoveUserFromProject() {
     onSuccess: (_, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.detail(projectId) });
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      toast.success("User removed from project successfully");
     },
     onError: (error: any) => {
       console.error("Error removing user from project:", error);
+      toast.error(error?.message || "Failed to remove user from project");
     },
   });
 } 

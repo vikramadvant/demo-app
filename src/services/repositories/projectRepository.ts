@@ -28,10 +28,32 @@ export class ProjectRepository {
   }
 
   async delete(id: number): Promise<Project> {
-    return await prisma.project.delete({
-      where: { id },
+    try {
+      return await prisma.project.delete({
+        where: { id },
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // get assigneed of a project
+  async getAssignees(projectId: number) {
+    return await prisma.projectUserMappings.findMany({
+      where: { projectId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },  
     });
   }
+
 
   async findWithTasks(id: number) {
     return await prisma.project.findUnique({

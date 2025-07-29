@@ -1,13 +1,7 @@
-import { SignInButton, currentUser } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
+import { SignInButton } from "@clerk/nextjs";
 
 export default async function Home() {
-  const user = await currentUser();
-
-  if (user) {
-    redirect("/dashboard");
-  }
-
+ 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
       <main className="flex-1">

@@ -27,6 +27,7 @@ export class TaskService {
 
   async getUserTasks() {
     const user = await this.authService.getCurrentUser();
+    console.log('user: in task services', user);
     
     if (!user) {
       throw new Error("Unauthorized");

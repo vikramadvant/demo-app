@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import UserProvider from "@/components/UserProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { RoleGuard } from "@/components/RoleGuard";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
           <body className={`${inter.className} min-h-full`}>
             <QueryProvider>
               <UserProvider>
+                <Toaster position="top-right" />
                 <RoleGuard>{children}</RoleGuard>
               </UserProvider>
             </QueryProvider>

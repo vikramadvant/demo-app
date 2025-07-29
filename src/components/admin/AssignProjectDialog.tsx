@@ -3,6 +3,7 @@ import { X, UserCheck, UserPlus } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAssignUsersToProject } from "@/hooks/projects";
 import { useProjectAssignees } from "@/hooks/projects";
+import { toast } from "react-hot-toast";
 
 interface User {
   id: number;
@@ -28,7 +29,6 @@ export default function AssignProjectDialog({
   allUsers,
   onSave,
 }: AssignProjectDialogProps) {
-  console.log('allUsers: ', allUsers);
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const assignMutation = useAssignUsersToProject();
   const [error, setError] = useState<string | null>(null);
@@ -55,14 +55,14 @@ export default function AssignProjectDialog({
     if (!project) return;
     try {
       await assignMutation.mutateAsync({ projectId: project.id, userIds: selectedUserIds });
+      toast.success("Assignees updated successfully");
       if (onSave) onSave(selectedUserIds); // for local state fallback
       onClose();
     } catch (e: any) {
       setError(e?.message || "Failed to assign users");
+      toast.error(e?.message || "Failed to assign users");
     }
   };
-
-  console.log('selectedUserIds: ', selectedUserIds);
 
   return (
     <Dialog.Root open={open} onOpenChange={onClose}>

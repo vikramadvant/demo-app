@@ -83,8 +83,17 @@ export async function DELETE(
       );
     }
 
-    await projectService.deleteProject(id);
+    const data = await projectService.deleteProject(id);
+
+    if (data instanceof Error) {
+      return NextResponse.json(
+        { error: data.message },
+        { status: 400 }
+      );
+    }
+    
     return NextResponse.json({ message: "Project deleted successfully" });
+
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message.includes("Unauthorized")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

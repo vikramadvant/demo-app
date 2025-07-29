@@ -97,6 +97,15 @@ export class ProjectService {
       throw new Error("Project not found");
     }
 
+    // check whether this project is assigned to any user
+    const assignees = await this.projectRepository.getAssignees(id);
+    console.log('assignees: ', assignees);
+
+    if (assignees.length > 0) {
+      return new Error("Project cannot be deleted as it has assigned users");
+    }
+    console.log('assignees: ', assignees);
+    
     return await this.projectRepository.delete(id);
   }
 

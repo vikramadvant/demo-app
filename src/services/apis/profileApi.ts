@@ -12,8 +12,7 @@ export class UserApi {
       if (error.status === 401) {
         return null;
       }
-      throw error;
+      throw new Error(error?.message || "Failed to fetch user profile");
     }
   }
-  
 } 
