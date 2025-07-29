@@ -39,3 +39,13 @@ export function useProjectWithTasks(projectId: number) {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 }
+
+export function useProjectAssignees(projectId: number) {
+  return useQuery({
+    queryKey: [...projectKeys.detail(projectId), "assignees"],
+    queryFn: () => projectApi.getProjectAssignees(projectId),
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+}

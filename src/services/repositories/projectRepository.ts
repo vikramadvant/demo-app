@@ -52,4 +52,26 @@ export class ProjectRepository {
       },
     });
   }
+
+  // Assign users to a project (replace all assignees)
+  async assignUsersToProject(projectId: number, userIds: number[]) {
+    // Remove all existing mappings for this project
+    await prisma.projectUserMappings.deleteMany({ where: { projectId } });
+    // Add new mappings
+    const created = await Promise.all(
+      userIds.map(userId =>
+        prisma.projectUserMappings.create({
+          data: { projectId, userId }
+        })
+      )
+    );
+    return created;
+  }
+
+  // Remove a user from a project
+  async removeUserFromProject(projectId: number, userId: number) {
+    return await prisma.projectUserMappings.deleteMany({
+      where: { projectId, userId }
+    });
+  }
 }

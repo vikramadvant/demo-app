@@ -119,4 +119,30 @@ export class ProjectService {
 
     return project;
   }
+
+  async assignUsersToProject(projectId: number, userIds: number[]) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
+      throw new Error("Unauthorized");
+    }
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+    return await this.projectRepository.assignUsersToProject(projectId, userIds);
+  }
+
+  async removeUserFromProject(projectId: number, userId: number) {
+    // Check if user is admin
+    const currentUser = await this.authService.getCurrentUser();
+    if (!currentUser) {
+      throw new Error("Unauthorized");
+    }
+    const isAdmin = currentUser.roles?.includes("ADMIN");
+    if (!isAdmin) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+    return await this.projectRepository.removeUserFromProject(projectId, userId);
+  }
 }

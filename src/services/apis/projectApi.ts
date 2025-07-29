@@ -49,4 +49,19 @@ export class ProjectApi {
     const response = await httpClient.get(`${this.baseUrl}/${id}/tasks`);
     return response.data;
   }
+
+  async assignUsersToProject(projectId: number, userIds: number[]): Promise<any> {
+    const response = await httpClient.post(`/project/${projectId}/users`, { userIds });
+    return response.data;
+  }
+
+  async removeUserFromProject(projectId: number, userId: number): Promise<any> {
+    const response = await httpClient.delete(`/project/${projectId}/users`, { data: { userId } });
+    return response.data;
+  }
+
+  async getProjectAssignees(projectId: number): Promise<any[]> {
+    const response = await httpClient.get(`/project/${projectId}/users`);
+    return response.data;
+  }
 } 
