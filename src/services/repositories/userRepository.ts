@@ -12,6 +12,11 @@ export class UserRepository {
     });
   }
 
+  async getUsers (): Promise<User[]> {
+    console.log("Fetching all users from the database");
+    return await prisma.user.findMany();
+  }
+
   async findOrCreate(userData: CreateUserData): Promise<User> {
     let user = await this.findByEmail(userData.email);
 

@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { UserApi } from '@/services/apis/userApi';
+import { UserApi } from '@/services/apis/profileApi';
+import { UsersApi } from '@/services/apis/userApi';
 import { User } from '@/types/user';
 
 const userApi = new UserApi();
+const usersApi = new UsersApi();
 
 // Query keys
 export const userKeys = {
@@ -20,6 +22,17 @@ export const useCurrentUser = () => {
     staleTime: 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
     retry: false, // Don't retry on 401 errors
+  });
+};
+
+// Hook to fetch all users
+export const useUsers = () => {
+  return useQuery<User[], Error>({
+    queryKey: userKeys.all,
+    queryFn: () => usersApi.getAllUsers(),
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: false,
   });
 };
 

@@ -1,18 +1,15 @@
 import { User } from "@/types";
 import { httpClient } from "./httpClient";
 
-export class UserApi {
-  private baseUrl: string = "/me";
+export class UsersApi {
+  private baseUrl: string = "/user";
 
-  async getCurrentUser(): Promise<User | null> {
+  async getAllUsers(): Promise<User[]> {
     try {
-      const response = await httpClient.get<User>(this.baseUrl);
+      const response = await httpClient.get<User[]>(`${this.baseUrl}`);
       return response.data;
-    } catch (error: any) {
-      if (error.status === 401) {
-        return null;
-      }
+    } catch (error) {
       throw error;
     }
   }
-} 
+}

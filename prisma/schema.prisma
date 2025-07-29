@@ -8,30 +8,48 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int         @id @default(autoincrement())
+  email     String      @unique
   firstName String?
   lastName  String?
   imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
-  tasks Task[]
-  roles UserRole[]
+  tasks     Task[]
+  roles     UserRole[]
+  projectMappings ProjectUserMappings[]
 
   @@map("users")
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
-  tasks Task[]
+  tasks     Task[]
+  userMappings ProjectUserMappings[]
 
   @@map("projects")
+}
+
+model ProjectUserMappings {
+  id        Int      @id @default(autoincrement())
+  
+  projectId Int
+  userId    Int
+
+  project   Project @relation(fields: [projectId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("project_user_mappings")
+  @@unique([projectId, userId]) // prevent duplicate mappings
 }
 
 model Task {
@@ -43,35 +61,38 @@ model Task {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  userId Int
-  user   User @relation(fields: [userId], references: [id])
-
+  userId    Int
   projectId Int
+
+  user      User    @relation(fields: [userId], references: [id])
   project   Project @relation(fields: [projectId], references: [id])
 
   @@map("tasks")
 }
 
 model Role {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   role      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
-  users UserRole[] // One role can be assigned to many users
+  users     UserRole[]
 
   @@map("roles")
 }
 
 model UserRole {
   id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
+
   userId    Int
-  role      Role     @relation(fields: [roleId], references: [id])
   roleId    Int
+
+  user      User     @relation(fields: [userId], references: [id])
+  role      Role     @relation(fields: [roleId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, roleId]) // prevent duplicate role assignments
+  @@unique([userId, roleId]) // prevent duplicate assignments
   @@map("user_roles")
 }

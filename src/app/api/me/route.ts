@@ -7,7 +7,7 @@ const authService = new AuthService();
 // Returns user with roles: string[]
 export async function GET() {
   try {
-    const user = await authService.getCurrentUser();
+    const user = await authService.getOrCreateUser();
     return NextResponse.json(user);
   } catch (error) {
     console.error("Error fetching user:", error);

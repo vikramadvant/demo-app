@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
-import { Plus, Users, Edit, Trash2, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import ProjectTable from "@/components/admin/ProjectTable";
 import ProjectDialog from "@/components/admin/ProjectDialog";
+import AssignProjectDialog from "@/components/admin/AssignProjectDialog";
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from "@/hooks/projects";
+import { useUsers } from "@/hooks/users/useUsers";
 import { Project } from "@/types/project";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
@@ -13,8 +15,14 @@ export default function AdminProjectsPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
+  // Assignment dialog state
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [assigningProject, setAssigningProject] = useState<Project | null>(null);
+  const [assignedUserIdsByProject, setAssignedUserIdsByProject] = useState<Record<number, number[]>>({});
+
   // React Query hooks
   const { data: projects = [], isLoading, error } = useProjects();
+  const { data: users = [], isLoading: isLoadingUsers, error: usersError } = useUsers();
   const createProjectMutation = useCreateProject();
   const updateProjectMutation = useUpdateProject();
   const deleteProjectMutation = useDeleteProject();
@@ -42,9 +50,19 @@ export default function AdminProjectsPage() {
     }
   };
 
+  // Assignment UI handlers
   const handleAssign = (project: Project) => {
-    // TODO: Implement assign functionality
-    console.log("Assign project:", project);
+    setAssigningProject(project);
+    setShowAssignDialog(true);
+  };
+
+  const handleAssignSave = (userIds: number[]) => {
+    if (assigningProject) {
+      setAssignedUserIdsByProject((prev) => ({
+        ...prev,
+        [assigningProject.id]: userIds,
+      }));
+    }
   };
 
   const handleProjectSubmit = async (data: any) => {
@@ -65,6 +83,17 @@ export default function AdminProjectsPage() {
             <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Projects</h1>
             <p className="text-gray-600">Failed to load projects. Please try again later.</p>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || isLoadingUsers) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 p-8">
+        <div className="max-w-5xl mx-auto flex items-center justify-center py-12">
+          <Loader2 size={32} className="animate-spin text-primary" />
+          <span className="ml-2 text-gray-600">Loading...</span>
         </div>
       </div>
     );
@@ -99,7 +128,7 @@ export default function AdminProjectsPage() {
           </div>
         ) : (
           <ProjectTable
-            projects={projects}
+            projects={projects || []}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onAssign={handleAssign}
@@ -117,6 +146,18 @@ export default function AdminProjectsPage() {
         project={editingProject}
         onSubmit={handleProjectSubmit}
         isLoading={createProjectMutation.isPending || updateProjectMutation.isPending}
+      />
+
+      <AssignProjectDialog
+        open={showAssignDialog}
+        onClose={() => {
+          setShowAssignDialog(false);
+          setAssigningProject(null);
+        }}
+        project={assigningProject}
+        assignedUserIds={assigningProject ? assignedUserIdsByProject[assigningProject.id] || [] : []}
+        allUsers={users || []}
+        onSave={handleAssignSave}
       />
 
       <ConfirmDialog

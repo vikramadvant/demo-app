@@ -13,7 +13,7 @@ export const projectKeys = {
 
 export function useProjects() {
   return useQuery({
-    queryKey: projectKeys.lists(),
+    queryKey: projectKeys.lists(),  
     queryFn: () => projectApi.getAllProjects(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -38,4 +38,4 @@ export function useProjectWithTasks(projectId: number) {
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
-} 
+}
